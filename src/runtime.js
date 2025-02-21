@@ -1,4 +1,5 @@
 const { core } = Deno;
+const { ops } = core;
 
 function argsToMessage(...args) {
   return args.map((arg) => JSON.stringify(arg)).join(" ");
@@ -22,5 +23,8 @@ globalThis.runjs = {
     },
     removeFile: (path) => {
         return core.ops.op_remove_file(path);
+    },
+    fetch: (url) => {
+        return ops.op_fetch(url);
     },
 };

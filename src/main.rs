@@ -1,6 +1,7 @@
 use deno_core::error::AnyError;
 use deno_core::extension;
 use deno_core::op2;
+use deno_error::JsErrorBox;
 use std::rc::Rc;
 use std::result::Result::Ok;
 
@@ -25,12 +26,24 @@ fn op_remove_file(#[string] path: String) -> Result<(), std::io::Error> {
     std::fs::remove_file(path)
 }
 
+#[op2(async)]
+#[string]
+async fn op_fetch(#[string] url: String) -> Result<String, JsErrorBox> {
+    reqwest::get(url)
+        .await
+        .map_err(|e| JsErrorBox::type_error(e.to_string()))?
+        .text()
+        .await
+        .map_err(|e| JsErrorBox::type_error(e.to_string()))
+}
+
 extension!(
     runjs,
     ops = [
         op_read_file,
         op_write_file,
         op_remove_file,
+        op_fetch,
     ],
     esm_entry_point = "ext:runjs/runtime.js",
     esm = [dir "src", "runtime.js"],
