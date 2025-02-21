@@ -8,9 +8,18 @@ async fn run_js(file_path: &str) -> Result<(), AnyError> {
         ..Default::default()
     });
 
+    let internal_mod_id = js_runtime
+        .load_side_es_module_from_code(
+            &deno_core::ModuleSpecifier::parse("runjs:runtime.js")?,
+            include_str!("./runtime.js"),
+        )
+        .await?;
+    let internal_mod_result = js_runtime.mod_evaluate(internal_mod_id);
+
     let mod_id = js_runtime.load_main_es_module(&main_module).await?;
     let result = js_runtime.mod_evaluate(mod_id);
 
+    internal_mod_result.await?;
     result.await?;
     js_runtime.run_event_loop(Default::default()).await?;
 
